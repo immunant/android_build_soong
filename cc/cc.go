@@ -59,6 +59,9 @@ func init() {
 
 		ctx.TopDown("lto_deps", ltoDepsMutator)
 		ctx.BottomUp("lto", ltoMutator).Parallel()
+
+		ctx.TopDown("pagerando", pagerandoDepsMutator)
+		ctx.BottomUp("pagerando", pagerandoMutator).Parallel()
 	})
 
 	pctx.Import("android/soong/cc/config")
@@ -214,6 +217,7 @@ type VendorProperties struct {
 type ModuleContextIntf interface {
 	static() bool
 	staticBinary() bool
+	sharedLibrary() bool
 	clang() bool
 	toolchain() config.Toolchain
 	useSdk() bool
@@ -339,6 +343,7 @@ type Module struct {
 	vndkdep   *vndkdep
 	lto       *lto
 	pgo       *pgo
+	pagerando *pagerando
 
 	androidMkSharedLibDeps []string
 
@@ -391,6 +396,9 @@ func (c *Module) Init() android.Module {
 	}
 	if c.pgo != nil {
 		c.AddProperties(c.pgo.props()...)
+	}
+	if c.pagerando != nil {
+		c.AddProperties(c.pagerando.props()...)
 	}
 	for _, feature := range c.features {
 		c.AddProperties(feature.props()...)
@@ -513,6 +521,15 @@ func (ctx *moduleContextImpl) staticBinary() bool {
 	return false
 }
 
+func (ctx *moduleContextImpl) sharedLibrary() bool {
+	if shared, ok := ctx.mod.linker.(interface {
+		shared() bool
+	}); ok {
+		return shared.shared()
+	}
+	return false
+}
+
 func (ctx *moduleContextImpl) useSdk() bool {
 	if ctx.ctx.Device() && !ctx.useVndk() && !ctx.inRecovery() {
 		return String(ctx.mod.Properties.Sdk_version) != ""
@@ -621,6 +638,7 @@ func newModule(hod android.HostOrDeviceSupported, multilib android.Multilib) *Mo
 	module.vndkdep = &vndkdep{}
 	module.lto = &lto{}
 	module.pgo = &pgo{}
+	module.pagerando = &pagerando{}
 	return module
 }
 
@@ -734,6 +752,9 @@ func (c *Module) GenerateAndroidBuildActions(actx android.ModuleContext) {
 	if c.pgo != nil {
 		flags = c.pgo.flags(ctx, flags)
 	}
+	if c.pagerando != nil {
+		flags = c.pagerando.flags(ctx, flags)
+	}
 	for _, feature := range c.features {
 		flags = feature.flags(ctx, flags)
 	}
@@ -819,6 +840,9 @@ func (c *Module) begin(ctx BaseModuleContext) {
 	if c.pgo != nil {
 		c.pgo.begin(ctx)
 	}
+	if c.pagerando != nil {
+		c.pagerando.begin(ctx)
+	}
 	for _, feature := range c.features {
 		feature.begin(ctx)
 	}
@@ -863,6 +887,9 @@ func (c *Module) deps(ctx DepsContext) Deps {
 	}
 	if c.lto != nil {
 		deps = c.lto.deps(ctx, deps)
+	}
+	if c.pagerando != nil {
+		deps = c.pagerando.deps(ctx, deps)
 	}
 	for _, feature := range c.features {
 		deps = feature.deps(ctx, deps)
@@ -1518,6 +1545,7 @@ func DefaultsFactory(props ...interface{}) android.Module {
 		&VndkProperties{},
 		&LTOProperties{},
 		&PgoProperties{},
+		&PagerandoProperties{},
 		&android.ProtoProperties{},
 	)
 

@@ -175,6 +175,7 @@ type productVariables struct {
 	Pdk                        *bool `json:",omitempty"`
 	Uml                        *bool `json:",omitempty"`
 	MinimizeJavaDebugInfo      *bool `json:",omitempty"`
+	EnablePagerando            *bool `json:",omitempty"`
 
 	IntegerOverflowExcludePaths *[]string `json:",omitempty"`
 

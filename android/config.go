@@ -613,6 +613,10 @@ func (c *config) EnableCFI() bool {
 	}
 }
 
+func (c *config) EnablePagerando() bool {
+	return *c.ProductVariables.EnablePagerando
+}
+
 func (c *config) Android64() bool {
 	for _, t := range c.Targets[Device] {
 		if t.Arch.ArchType.Multilib == "lib64" {

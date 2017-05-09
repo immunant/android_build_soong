@@ -235,6 +235,8 @@ type libraryDecorator struct {
 
 	sabi *sabi
 
+	pagerando *pagerando
+
 	// Output archive of gcno coverage information files
 	coverageOutputFile android.OptionalPath
 
@@ -818,6 +820,7 @@ func NewLibrary(hod android.HostOrDeviceSupported) (*Module, *libraryDecorator) 
 		baseInstaller: NewBaseInstaller("lib", "lib64", InstallInSystem),
 		sanitize:      module.sanitize,
 		sabi:          module.sabi,
+		pagerando:     module.pagerando,
 	}
 
 	module.compiler = library
