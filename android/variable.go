@@ -139,6 +139,7 @@ type productVariables struct {
 	Device_uses_hwc2           *bool `json:",omitempty"`
 	Treble                     *bool `json:",omitempty"`
 	Pdk                        *bool `json:",omitempty"`
+	EnablePagerando            *bool `json:",omitempty"`
 
 	VendorPath *string `json:",omitempty"`
 

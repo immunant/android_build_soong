@@ -53,6 +53,9 @@ func init() {
 
 		ctx.TopDown("lto_deps", ltoDepsMutator)
 		ctx.BottomUp("lto", ltoMutator).Parallel()
+
+		ctx.TopDown("pagerando", pagerandoDepsMutator)
+		ctx.BottomUp("pagerando", pagerandoMutator).Parallel()
 	})
 
 	pctx.Import("android/soong/cc/config")
@@ -180,6 +183,7 @@ type UnusedProperties struct {
 type ModuleContextIntf interface {
 	static() bool
 	staticBinary() bool
+	sharedLibrary() bool
 	clang() bool
 	toolchain() config.Toolchain
 	noDefaultCompilerFlags() bool
@@ -295,6 +299,7 @@ type Module struct {
 	coverage  *coverage
 	sabi      *sabi
 	lto       *lto
+	pagerando *pagerando
 
 	androidMkSharedLibDeps []string
 
@@ -330,6 +335,9 @@ func (c *Module) Init() (blueprint.Module, []interface{}) {
 	}
 	if c.sabi != nil {
 		props = append(props, c.sabi.props()...)
+	}
+	if c.pagerando != nil {
+		props = append(props, c.pagerando.props()...)
 	}
 	for _, feature := range c.features {
 		props = append(props, feature.props()...)
@@ -410,6 +418,15 @@ func (ctx *moduleContextImpl) staticBinary() bool {
 	return false
 }
 
+func (ctx *moduleContextImpl) sharedLibrary() bool {
+	if shared, ok := ctx.mod.linker.(interface {
+		shared() bool
+	}); ok {
+		return shared.shared()
+	}
+	return false
+}
+
 func (ctx *moduleContextImpl) noDefaultCompilerFlags() bool {
 	return Bool(ctx.mod.Properties.No_default_compiler_flags)
 }
@@ -469,6 +486,7 @@ func newModule(hod android.HostOrDeviceSupported, multilib android.Multilib) *Mo
 	module.coverage = &coverage{}
 	module.sabi = &sabi{}
 	module.lto = &lto{}
+	module.pagerando = &pagerando{}
 	return module
 }
 
@@ -516,6 +534,9 @@ func (c *Module) GenerateAndroidBuildActions(actx android.ModuleContext) {
 	}
 	if c.coverage != nil {
 		flags = c.coverage.flags(ctx, flags)
+	}
+	if c.pagerando != nil {
+		flags = c.pagerando.flags(ctx, flags)
 	}
 	for _, feature := range c.features {
 		flags = feature.flags(ctx, flags)
@@ -600,6 +621,9 @@ func (c *Module) begin(ctx BaseModuleContext) {
 	if c.sabi != nil {
 		c.sabi.begin(ctx)
 	}
+	if c.pagerando != nil {
+		c.pagerando.begin(ctx)
+	}
 	for _, feature := range c.features {
 		feature.begin(ctx)
 	}
@@ -635,6 +659,9 @@ func (c *Module) deps(ctx DepsContext) Deps {
 	}
 	if c.sabi != nil {
 		deps = c.sabi.deps(ctx, deps)
+	}
+	if c.pagerando != nil {
+		deps = c.pagerando.deps(ctx, deps)
 	}
 	for _, feature := range c.features {
 		deps = feature.deps(ctx, deps)
@@ -1150,6 +1177,7 @@ func DefaultsFactory(props ...interface{}) (blueprint.Module, []interface{}) {
 		&CoverageProperties{},
 		&SAbiProperties{},
 		&LTOProperties{},
+		&PagerandoProperties{},
 	)
 
 	return android.InitDefaultsModule(module, module, props...)
