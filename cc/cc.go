@@ -50,6 +50,9 @@ func init() {
 
 		ctx.BottomUp("coverage", coverageLinkingMutator).Parallel()
 		ctx.TopDown("vndk_deps", sabiDepsMutator)
+
+		ctx.TopDown("lto_deps", ltoDepsMutator)
+		ctx.BottomUp("lto", ltoMutator).Parallel()
 	})
 
 	pctx.Import("android/soong/cc/config")
@@ -291,6 +294,7 @@ type Module struct {
 	sanitize  *sanitize
 	coverage  *coverage
 	sabi      *sabi
+	lto       *lto
 
 	androidMkSharedLibDeps []string
 
@@ -329,6 +333,9 @@ func (c *Module) Init() (blueprint.Module, []interface{}) {
 	}
 	for _, feature := range c.features {
 		props = append(props, feature.props()...)
+	}
+	if c.lto != nil {
+		props = append(props, c.lto.props()...)
 	}
 
 	_, props = android.InitAndroidArchModule(c, c.hod, c.multilib, props...)
@@ -461,6 +468,7 @@ func newModule(hod android.HostOrDeviceSupported, multilib android.Multilib) *Mo
 	module.sanitize = &sanitize{}
 	module.coverage = &coverage{}
 	module.sabi = &sabi{}
+	module.lto = &lto{}
 	return module
 }
 
@@ -511,6 +519,9 @@ func (c *Module) GenerateAndroidBuildActions(actx android.ModuleContext) {
 	}
 	for _, feature := range c.features {
 		flags = feature.flags(ctx, flags)
+	}
+	if c.lto != nil {
+		flags = c.lto.flags(ctx, flags)
 	}
 	if ctx.Failed() {
 		return
@@ -592,6 +603,9 @@ func (c *Module) begin(ctx BaseModuleContext) {
 	for _, feature := range c.features {
 		feature.begin(ctx)
 	}
+	if c.lto != nil {
+		c.lto.begin(ctx)
+	}
 	if ctx.sdk() {
 		version, err := normalizeNdkApiLevel(ctx.sdkVersion(), ctx.Arch())
 		if err != nil {
@@ -624,6 +638,9 @@ func (c *Module) deps(ctx DepsContext) Deps {
 	}
 	for _, feature := range c.features {
 		deps = feature.deps(ctx, deps)
+	}
+	if c.lto != nil {
+		deps = c.lto.deps(ctx, deps)
 	}
 
 	deps.WholeStaticLibs = lastUniqueElements(deps.WholeStaticLibs)
@@ -1132,6 +1149,7 @@ func DefaultsFactory(props ...interface{}) (blueprint.Module, []interface{}) {
 		&TidyProperties{},
 		&CoverageProperties{},
 		&SAbiProperties{},
+		&LTOProperties{},
 	)
 
 	return android.InitDefaultsModule(module, module, props...)
