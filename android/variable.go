@@ -194,6 +194,7 @@ type productVariables struct {
 	Use_lmkd_stats_log               *bool `json:",omitempty"`
 	Arc                              *bool `json:",omitempty"`
 	MinimizeJavaDebugInfo            *bool `json:",omitempty"`
+	EnablePagerando                  *bool `json:",omitempty"`
 
 	UncompressPrivAppDex             *bool    `json:",omitempty"`
 	ModulesLoadedByPrivilegedModules []string `json:",omitempty"`

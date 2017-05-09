@@ -659,6 +659,10 @@ func (c *config) EnableXOM() bool {
 	}
 }
 
+func (c *config) EnablePagerando() bool {
+	return *c.ProductVariables.EnablePagerando
+}
+
 func (c *config) Android64() bool {
 	for _, t := range c.Targets[Android] {
 		if t.Arch.ArchType.Multilib == "lib64" {
