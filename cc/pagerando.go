@@ -30,7 +30,6 @@ const (
 type PagerandoProperties struct {
 	Pagerando      *bool    `android:"arch_variant"`
 	PagerandoDep   bool     `blueprint:"mutated"`
-	Never          bool     `android:"arch_variant"`
 }
 
 type pagerando struct {
@@ -44,28 +43,22 @@ func (pagerando *pagerando) props() []interface{} {
 func (pagerando *pagerando) begin(ctx BaseModuleContext) {
 	// Pagerando should only be enabled for device builds
 	if !ctx.Device() {
-		pagerando.Properties.Never = true
+		pagerando.Properties.Pagerando = boolPtr(false)
 	}
 
 	// Pagerando only works for arm32 right now
 	if ctx.Arch().ArchType != android.Arm {
-		pagerando.Properties.Never = true
+		pagerando.Properties.Pagerando = boolPtr(false)
 	}
 
-	if pagerando.Properties.Never {
-		pagerando.Properties.Pagerando = nil
-		return
+	if !ctx.sharedLibrary() {
+		pagerando.Properties.Pagerando = boolPtr(false)
 	}
 
 	// If local blueprint does not specify, allow global setting to enable
 	// pagerando
 	if ctx.AConfig().EnablePagerando() && pagerando.Properties.Pagerando == nil {
 		pagerando.Properties.Pagerando = boolPtr(true)
-	}
-
-	// Only enable pagerando for shared libraries
-	if !ctx.sharedLibrary() {
-		pagerando.Properties.Pagerando = nil
 	}
 }
 
@@ -96,7 +89,7 @@ func pagerandoDepsMutator(mctx android.TopDownMutatorContext) {
 			tag := mctx.OtherModuleDependencyTag(m)
 			switch tag {
 			case staticDepTag, staticExportDepTag, lateStaticDepTag, wholeStaticDepTag:
-				if cc, ok := m.(*Module); ok && !cc.pagerando.Properties.Never {
+				if cc, ok := m.(*Module); ok && cc.pagerando.Properties.Pagerando == nil {
 					cc.pagerando.Properties.PagerandoDep = true
 				}
 			}
