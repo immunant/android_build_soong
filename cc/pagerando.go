@@ -113,11 +113,9 @@ func pagerandoMutator(mctx android.BottomUpMutatorContext) {
 			modules[1].(*Module).pagerando.Properties.Pagerando = boolPtr(true)
 			modules[0].(*Module).pagerando.Properties.PagerandoDep = false
 			modules[1].(*Module).pagerando.Properties.PagerandoDep = false
-			if !mctx.Device() {
-				modules[0].(*Module).Properties.PreventInstall = true
-			}
+			modules[1].(*Module).Properties.PreventInstall = true
 			if mctx.AConfig().EmbeddedInMake() {
-				modules[0].(*Module).Properties.HideFromMake = true
+				modules[1].(*Module).Properties.HideFromMake = true
 			}
 			if modules[1].(*Module).lto == nil {
 				mctx.ModuleErrorf("does not support LTO")
