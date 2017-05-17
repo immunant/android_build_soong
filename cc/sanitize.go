@@ -44,14 +44,6 @@ var (
 
 type sanitizerType int
 
-func boolPtr(v bool) *bool {
-	if v {
-		return &v
-	} else {
-		return nil
-	}
-}
-
 const (
 	asan sanitizerType = iota + 1
 	tsan

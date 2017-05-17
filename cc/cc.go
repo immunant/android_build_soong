@@ -30,6 +30,10 @@ import (
 	"android/soong/genrule"
 )
 
+func boolPtr(v bool) *bool {
+	return &v
+}
+
 func init() {
 	android.RegisterModuleType("cc_defaults", defaultsFactory)
 
