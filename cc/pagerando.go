@@ -52,7 +52,7 @@ func (pagerando *pagerando) begin(ctx BaseModuleContext) {
 	}
 
 	if !ctx.sharedLibrary() {
-		pagerando.Properties.Pagerando = boolPtr(false)
+		return;
 	}
 
 	// If local blueprint does not specify, allow global setting to enable
