@@ -88,9 +88,11 @@ func pagerandoDepsMutator(mctx android.TopDownMutatorContext) {
 		mctx.VisitDepsDepthFirst(func(m blueprint.Module) {
 			tag := mctx.OtherModuleDependencyTag(m)
 			switch tag {
-			case staticDepTag, staticExportDepTag, lateStaticDepTag, wholeStaticDepTag:
-				if cc, ok := m.(*Module); ok && cc.pagerando.Properties.Pagerando == nil {
-					cc.pagerando.Properties.PagerandoDep = true
+			case staticDepTag, staticExportDepTag, lateStaticDepTag, wholeStaticDepTag, objDepTag, reuseObjTag:
+				if cc, ok := m.(*Module); ok && cc.pagerando != nil {
+					if cc.pagerando.Properties.Pagerando == nil {
+						cc.pagerando.Properties.PagerandoDep = true
+					}
 				}
 			}
 		})
