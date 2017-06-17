@@ -397,11 +397,9 @@ toolchain_library {
     arch: {
         arm: {
             src: "prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/arm-linux-androideabi/lib/libatomic.a",
-            pagerando: false,
         },
         arm64: {
             src: "prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/aarch64-linux-android/lib64/libatomic.a",
-            pagerando: false,
         },
         x86: {
             src: "prebuilts/gcc/linux-x86/x86/x86_64-linux-android-4.9/x86_64-linux-android/lib/libatomic.a",
@@ -421,11 +419,9 @@ toolchain_library {
     arch: {
         arm: {
             src: "prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/lib/gcc/arm-linux-androideabi/4.9.x/libgcc.a",
-            pagerando: false,
         },
         arm64: {
             src: "prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/lib/gcc/aarch64-linux-android/4.9.x/libgcc.a",
-            pagerando: false,
         },
         x86: {
             src: "prebuilts/gcc/linux-x86/x86/x86_64-linux-android-4.9/lib/gcc/x86_64-linux-android/4.9.x/32/libgcc.a",
@@ -461,11 +457,9 @@ toolchain_library {
     arch: {
         arm: {
             src: "prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/lib/gcc/arm-linux-androideabi/4.9.x/libgcov.a",
-            pagerando: false,
         },
         arm64: {
             src: "prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/lib/gcc/aarch64-linux-android/4.9.x/libgcov.a",
-            pagerando: false,
         },
         x86: {
             src: "prebuilts/gcc/linux-x86/x86/x86_64-linux-android-4.9/lib/gcc/x86_64-linux-android/4.9.x/32/libgcov.a",
