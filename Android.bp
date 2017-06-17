@@ -341,7 +341,7 @@ toolchain_library {
     recovery_available: true,
     arch: {
         arm: {
-            instruction_set: "arm", pagerando: false,
+            instruction_set: "arm",
         },
     },
 }
@@ -353,7 +353,7 @@ toolchain_library {
     recovery_available: true,
     arch: {
         arm: {
-            instruction_set: "arm", pagerando: false,
+            instruction_set: "arm",
         },
     },
 }
@@ -374,7 +374,7 @@ toolchain_library {
     defaults: ["linux_bionic_supported"],
     arch: {
         arm: {
-            instruction_set: "arm", pagerando: false,
+            instruction_set: "arm",
         },
     },
 }
