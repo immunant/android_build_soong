@@ -274,7 +274,7 @@ toolchain_library {
     vendor_available: true,
     arch: {
         arm: {
-            instruction_set: "arm", pagerando: false,
+            instruction_set: "arm",
         },
     },
 }
@@ -285,7 +285,7 @@ toolchain_library {
     vendor_available: true,
     arch: {
         arm: {
-            instruction_set: "arm", pagerando: false,
+            instruction_set: "arm",
         },
     },
 }
@@ -306,7 +306,7 @@ toolchain_library {
     defaults: ["linux_bionic_supported"],
     arch: {
         arm: {
-            instruction_set: "arm", pagerando: false,
+            instruction_set: "arm",
         },
     },
 }
