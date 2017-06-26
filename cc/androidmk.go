@@ -94,6 +94,9 @@ func (c *Module) AndroidMk() android.AndroidMkData {
 	if c.sanitize != nil {
 		c.subAndroidMk(&ret, c.sanitize)
 	}
+	if c.pagerando != nil {
+		c.subAndroidMk(&ret, c.pagerando)
+	}
 	c.subAndroidMk(&ret, c.installer)
 
 	if c.useVndk() && c.hasVendorVariant() {
