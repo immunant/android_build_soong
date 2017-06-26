@@ -17,8 +17,6 @@ package cc
 import (
 	"fmt"
 
-	"github.com/google/blueprint"
-
 	"android/soong/android"
 )
 
@@ -29,7 +27,7 @@ const (
 
 type PagerandoProperties struct {
 	Pagerando      *bool    `android:"arch_variant"`
-	PagerandoDep   bool     `blueprint:"mutated"`
+	PagerandoDisabled   bool     `blueprint:"mutated"`
 }
 
 type pagerando struct {
@@ -51,13 +49,19 @@ func (pagerando *pagerando) begin(ctx BaseModuleContext) {
 		pagerando.Properties.Pagerando = boolPtr(false)
 	}
 
-	if !ctx.sharedLibrary() {
-		return;
+	if pagerando.Properties.Pagerando != nil {
+		pagerando.Properties.PagerandoDisabled = !Bool(pagerando.Properties.Pagerando)
+	}
+
+	if !ctx.sharedLibrary() && !ctx.staticLibrary() {
+		pagerando.Properties.PagerandoDisabled = true
 	}
 
 	// If local blueprint does not specify, allow global setting to enable
-	// pagerando
-	if ctx.AConfig().EnablePagerando() && pagerando.Properties.Pagerando == nil {
+	// pagerando. Static libs should have both pagerando and non-pagerando
+	// versions built for consumption by make.
+	if ctx.sharedLibrary() && ctx.AConfig().EnablePagerando() &&
+		pagerando.Properties.Pagerando == nil {
 		pagerando.Properties.Pagerando = boolPtr(true)
 	}
 }
@@ -82,23 +86,6 @@ func (pagerando *pagerando) Pagerando() bool {
 	return Bool(pagerando.Properties.Pagerando)
 }
 
-// Propagate pagerando requirements down from binaries
-func pagerandoDepsMutator(mctx android.TopDownMutatorContext) {
-	if c, ok := mctx.Module().(*Module); ok && c.pagerando.Pagerando() {
-		mctx.VisitDepsDepthFirst(func(m blueprint.Module) {
-			tag := mctx.OtherModuleDependencyTag(m)
-			switch tag {
-			case staticDepTag, staticExportDepTag, lateStaticDepTag, wholeStaticDepTag, objDepTag, reuseObjTag:
-				if cc, ok := m.(*Module); ok && cc.pagerando != nil {
-					if cc.pagerando.Properties.Pagerando == nil {
-						cc.pagerando.Properties.PagerandoDep = true
-					}
-				}
-			}
-		})
-	}
-}
-
 // Create pagerando variants for modules that need them
 func pagerandoMutator(mctx android.BottomUpMutatorContext) {
 	if c, ok := mctx.Module().(*Module); ok && c.pagerando != nil {
@@ -109,22 +96,18 @@ func pagerandoMutator(mctx android.BottomUpMutatorContext) {
 				return
 			}
 			c.lto.Properties.Lto = boolPtr(true)
-		} else if c.pagerando.Properties.PagerandoDep {
+		} else if c.pagerando.Properties.Pagerando == nil &&
+			!c.pagerando.Properties.PagerandoDisabled &&
+			mctx.AConfig().EnablePagerando() {
 			modules := mctx.CreateVariations("", "pagerando")
 			modules[0].(*Module).pagerando.Properties.Pagerando = boolPtr(false)
 			modules[1].(*Module).pagerando.Properties.Pagerando = boolPtr(true)
-			modules[0].(*Module).pagerando.Properties.PagerandoDep = false
-			modules[1].(*Module).pagerando.Properties.PagerandoDep = false
 			modules[1].(*Module).Properties.PreventInstall = true
-			if mctx.AConfig().EmbeddedInMake() {
-				modules[1].(*Module).Properties.HideFromMake = true
-			}
 			if modules[1].(*Module).lto == nil {
 				mctx.ModuleErrorf("does not support LTO")
 				return
 			}
 			modules[1].(*Module).lto.Properties.Lto = boolPtr(true)
 		}
-		c.pagerando.Properties.PagerandoDep = false
 	}
 }
