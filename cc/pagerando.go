@@ -16,6 +16,7 @@ package cc
 
 import (
 	"fmt"
+	"io"
 
 	"android/soong/android"
 )
@@ -76,6 +77,16 @@ func (pagerando *pagerando) flags(ctx BaseModuleContext, flags Flags) Flags {
 		flags.LdFlags = append(flags.LdFlags, pagerandoLdFlags)
 	}
 	return flags
+}
+
+func (pagerando *pagerando) AndroidMk(ctx AndroidMkContext, ret *android.AndroidMkData) {
+	ret.Extra = append(ret.Extra, func(w io.Writer, outputFile android.Path) {
+		if pagerando.Pagerando() {
+			fmt.Fprintln(w, "LOCAL_PAGERANDO := true")
+		} else if pagerando.Properties.PagerandoDisabled {
+			fmt.Fprintln(w, "LOCAL_PAGERANDO := false")
+		}
+	})
 }
 
 func (pagerando *pagerando) Pagerando() bool {
