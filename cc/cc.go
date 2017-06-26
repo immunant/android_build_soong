@@ -64,7 +64,6 @@ func init() {
 		ctx.TopDown("lto_deps", ltoDepsMutator)
 		ctx.BottomUp("lto", ltoMutator).Parallel()
 
-		ctx.TopDown("pagerando", pagerandoDepsMutator)
 		ctx.BottomUp("pagerando", pagerandoMutator).Parallel()
 	})
 
