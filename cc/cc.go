@@ -247,6 +247,7 @@ type VendorProperties struct {
 type ModuleContextIntf interface {
 	static() bool
 	staticBinary() bool
+	staticLibrary() bool
 	sharedLibrary() bool
 	toolchain() config.Toolchain
 	useSdk() bool
@@ -610,11 +611,20 @@ func (ctx *moduleContextImpl) staticBinary() bool {
 	return ctx.mod.staticBinary()
 }
 
+func (ctx *moduleContextImpl) staticLibrary() bool {
+	if static, ok := ctx.mod.linker.(interface {
+		staticLibrary() bool
+	}); ok {
+		return static.staticLibrary()
+	}
+	return false
+}
+
 func (ctx *moduleContextImpl) sharedLibrary() bool {
 	if shared, ok := ctx.mod.linker.(interface {
-		shared() bool
+		sharedLibrary() bool
 	}); ok {
-		return shared.shared()
+		return shared.sharedLibrary()
 	}
 	return false
 }
