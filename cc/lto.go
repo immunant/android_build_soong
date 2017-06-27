@@ -65,11 +65,6 @@ func (lto *lto) flags(ctx BaseModuleContext, flags Flags) Flags {
 		flags.CFlags = append(flags.CFlags, "-flto")
 		flags.LdFlags = append(flags.LdFlags, "-flto")
 		flags.ArFlags = append(flags.ArFlags, " --plugin ${config.LLVMGoldPlugin}")
-
-		// Clang passes -m armelf_linux_eabi, which gold cannot handle
-		if ctx.Arch().ArchType == android.Arm {
-			flags.LdFlags = append(flags.LdFlags, "-Wl,-m,armelf")
-		}
 	}
 	return flags
 }
