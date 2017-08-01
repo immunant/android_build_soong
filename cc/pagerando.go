@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	pagerandoCFlags = "-fpip"
+	pagerandoCFlags = "-fpagerando"
 	pagerandoLdFlags = "-Wl,--plugin-opt,pip"
 )
 
