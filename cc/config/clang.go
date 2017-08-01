@@ -94,7 +94,7 @@ var ClangUnknownLldflags = sorted([]string{
 var ClangLibToolingUnknownCflags = sorted([]string{
 	"-flto*",
 	"-fsanitize*",
-	"-fpip",
+	"-fpagerando",
 })
 
 func init() {
