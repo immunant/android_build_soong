@@ -23,7 +23,7 @@ import (
 
 const (
 	pagerandoCFlags = "-fpagerando"
-	pagerandoLdFlags = "-Wl,--plugin-opt,pip"
+	pagerandoLdFlags = "-Wl,--plugin-opt,pagerando"
 )
 
 type PagerandoProperties struct {
