@@ -46,7 +46,7 @@ func (pagerando *pagerando) begin(ctx BaseModuleContext) {
 	}
 
 	// Pagerando only works for arm32 right now
-	if ctx.Arch().ArchType != android.Arm {
+	if ctx.Arch().ArchType != android.Arm && ctx.Arch().ArchType != android.Arm64 {
 		pagerando.Properties.Pagerando = boolPtr(false)
 	}
 
