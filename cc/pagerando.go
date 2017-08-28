@@ -28,7 +28,6 @@ const (
 
 type PagerandoProperties struct {
 	Pagerando      *bool    `android:"arch_variant"`
-	PagerandoDisabled   bool     `blueprint:"mutated"`
 }
 
 type pagerando struct {
@@ -45,17 +44,14 @@ func (pagerando *pagerando) begin(ctx BaseModuleContext) {
 		pagerando.Properties.Pagerando = boolPtr(false)
 	}
 
-	// Pagerando only works for arm32 right now
+	// Pagerando is currently only implemented for arm and arm64
 	if ctx.Arch().ArchType != android.Arm && ctx.Arch().ArchType != android.Arm64 {
 		pagerando.Properties.Pagerando = boolPtr(false)
 	}
 
-	if pagerando.Properties.Pagerando != nil {
-		pagerando.Properties.PagerandoDisabled = !Bool(pagerando.Properties.Pagerando)
-	}
-
+	// Pagerando should only be enabled for libraries
 	if !ctx.sharedLibrary() && !ctx.staticLibrary() {
-		pagerando.Properties.PagerandoDisabled = true
+		pagerando.Properties.Pagerando = boolPtr(false)
 	}
 
 	// If local blueprint does not specify, allow global setting to enable
@@ -81,9 +77,11 @@ func (pagerando *pagerando) flags(ctx BaseModuleContext, flags Flags) Flags {
 
 func (pagerando *pagerando) AndroidMk(ctx AndroidMkContext, ret *android.AndroidMkData) {
 	ret.Extra = append(ret.Extra, func(w io.Writer, outputFile android.Path) {
-		if pagerando.Pagerando() {
+		if pagerando.Properties.Pagerando == nil {
+			return
+		} else if pagerando.Pagerando() {
 			fmt.Fprintln(w, "LOCAL_PAGERANDO := true")
-		} else if pagerando.Properties.PagerandoDisabled {
+		} else {
 			fmt.Fprintln(w, "LOCAL_PAGERANDO := false")
 		}
 	})
@@ -108,7 +106,6 @@ func pagerandoMutator(mctx android.BottomUpMutatorContext) {
 			}
 			c.lto.Properties.Lto = boolPtr(true)
 		} else if c.pagerando.Properties.Pagerando == nil &&
-			!c.pagerando.Properties.PagerandoDisabled &&
 			mctx.AConfig().EnablePagerando() {
 			modules := mctx.CreateVariations("", "pagerando")
 			modules[0].(*Module).pagerando.Properties.Pagerando = boolPtr(false)
