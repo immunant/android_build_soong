@@ -659,8 +659,8 @@ func (c *config) EnableXOM() bool {
 	}
 }
 
-func (c *config) EnablePagerando() bool {
-	return *c.ProductVariables.EnablePagerando
+func (c *config) Pagerando() bool {
+	return *c.ProductVariables.Pagerando
 }
 
 func (c *config) Android64() bool {

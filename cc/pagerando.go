@@ -57,7 +57,7 @@ func (pagerando *pagerando) begin(ctx BaseModuleContext) {
 	// If local blueprint does not specify, allow global setting to enable
 	// pagerando. Static libs should have both pagerando and non-pagerando
 	// versions built for consumption by make.
-	if ctx.sharedLibrary() && ctx.AConfig().EnablePagerando() &&
+	if ctx.sharedLibrary() && ctx.AConfig().Pagerando() &&
 		pagerando.Properties.Pagerando == nil {
 		pagerando.Properties.Pagerando = boolPtr(true)
 	}
@@ -106,7 +106,7 @@ func pagerandoMutator(mctx android.BottomUpMutatorContext) {
 			}
 			c.lto.Properties.Lto = boolPtr(true)
 		} else if c.pagerando.Properties.Pagerando == nil &&
-			mctx.AConfig().EnablePagerando() {
+			mctx.AConfig().Pagerando() {
 			modules := mctx.CreateVariations("", "pagerando")
 			modules[0].(*Module).pagerando.Properties.Pagerando = boolPtr(false)
 			modules[1].(*Module).pagerando.Properties.Pagerando = boolPtr(true)
