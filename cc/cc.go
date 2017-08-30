@@ -30,10 +30,6 @@ import (
 	"android/soong/genrule"
 )
 
-func boolPtr(v bool) *bool {
-	return &v
-}
-
 func init() {
 	android.RegisterModuleType("cc_defaults", defaultsFactory)
 
@@ -69,10 +65,10 @@ func init() {
 		ctx.BottomUp("coverage", coverageLinkingMutator).Parallel()
 		ctx.TopDown("vndk_deps", sabiDepsMutator)
 
+		ctx.BottomUp("pagerando", pagerandoMutator).Parallel()
+
 		ctx.TopDown("lto_deps", ltoDepsMutator)
 		ctx.BottomUp("lto", ltoMutator).Parallel()
-
-		ctx.BottomUp("pagerando", pagerandoMutator).Parallel()
 	})
 
 	pctx.Import("android/soong/cc/config")
