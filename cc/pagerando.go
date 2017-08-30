@@ -1,4 +1,4 @@
-// Copyright 2017 Immunant Inc. All rights reserved.
+// Copyright 2017 Google Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ package cc
 import (
 	"fmt"
 	"io"
+
+	"github.com/google/blueprint/proptools"
 
 	"android/soong/android"
 )
@@ -41,17 +43,17 @@ func (pagerando *pagerando) props() []interface{} {
 func (pagerando *pagerando) begin(ctx BaseModuleContext) {
 	// Pagerando should only be enabled for device builds
 	if !ctx.Device() {
-		pagerando.Properties.Pagerando = boolPtr(false)
+		pagerando.Properties.Pagerando = proptools.BoolPtr(false)
 	}
 
 	// Pagerando is currently only implemented for arm and arm64
 	if ctx.Arch().ArchType != android.Arm && ctx.Arch().ArchType != android.Arm64 {
-		pagerando.Properties.Pagerando = boolPtr(false)
+		pagerando.Properties.Pagerando = proptools.BoolPtr(false)
 	}
 
 	// Pagerando should only be enabled for libraries
 	if !ctx.sharedLibrary() && !ctx.staticLibrary() {
-		pagerando.Properties.Pagerando = boolPtr(false)
+		pagerando.Properties.Pagerando = proptools.BoolPtr(false)
 	}
 
 	// If local blueprint does not specify, allow global setting to enable
@@ -59,7 +61,7 @@ func (pagerando *pagerando) begin(ctx BaseModuleContext) {
 	// versions built for consumption by make.
 	if ctx.sharedLibrary() && ctx.AConfig().Pagerando() &&
 		pagerando.Properties.Pagerando == nil {
-		pagerando.Properties.Pagerando = boolPtr(true)
+		pagerando.Properties.Pagerando = proptools.BoolPtr(true)
 	}
 }
 
@@ -104,18 +106,18 @@ func pagerandoMutator(mctx android.BottomUpMutatorContext) {
 				mctx.ModuleErrorf("does not support LTO")
 				return
 			}
-			c.lto.Properties.Lto = boolPtr(true)
+			c.lto.Properties.Lto = proptools.BoolPtr(true)
 		} else if c.pagerando.Properties.Pagerando == nil &&
 			mctx.AConfig().Pagerando() {
 			modules := mctx.CreateVariations("", "pagerando")
-			modules[0].(*Module).pagerando.Properties.Pagerando = boolPtr(false)
-			modules[1].(*Module).pagerando.Properties.Pagerando = boolPtr(true)
+			modules[0].(*Module).pagerando.Properties.Pagerando = proptools.BoolPtr(false)
+			modules[1].(*Module).pagerando.Properties.Pagerando = proptools.BoolPtr(true)
 			modules[1].(*Module).Properties.PreventInstall = true
 			if modules[1].(*Module).lto == nil {
 				mctx.ModuleErrorf("does not support LTO")
 				return
 			}
-			modules[1].(*Module).lto.Properties.Lto = boolPtr(true)
+			modules[1].(*Module).lto.Properties.Lto = proptools.BoolPtr(true)
 		}
 	}
 }
