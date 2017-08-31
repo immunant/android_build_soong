@@ -89,6 +89,7 @@ func (pagerando *pagerando) AndroidMk(ctx AndroidMkContext, ret *android.Android
 	})
 }
 
+// Can be called with a null receiver
 func (pagerando *pagerando) Pagerando() bool {
 	if pagerando == nil {
 		return false
@@ -102,21 +103,24 @@ func pagerandoMutator(mctx android.BottomUpMutatorContext) {
 	if c, ok := mctx.Module().(*Module); ok && c.pagerando != nil {
 		if c.pagerando.Pagerando() {
 			mctx.SetDependencyVariation("pagerando")
-			if c.lto == nil {
+			if c.lto.LTODisabled() {
 				mctx.ModuleErrorf("does not support LTO")
 				return
 			}
 			c.lto.Properties.Lto = proptools.BoolPtr(true)
 		} else if c.pagerando.Properties.Pagerando == nil &&
 			mctx.AConfig().Pagerando() {
+			if c.lto.LTODisabled() {
+				// Do not build this module with pagerando since
+				// LTO is disabled. This should not be a fatal
+				// error.
+				c.pagerando.Properties.Pagerando = proptools.BoolPtr(false)
+				return
+			}
 			modules := mctx.CreateVariations("", "pagerando")
 			modules[0].(*Module).pagerando.Properties.Pagerando = proptools.BoolPtr(false)
 			modules[1].(*Module).pagerando.Properties.Pagerando = proptools.BoolPtr(true)
 			modules[1].(*Module).Properties.PreventInstall = true
-			if modules[1].(*Module).lto == nil {
-				mctx.ModuleErrorf("does not support LTO")
-				return
-			}
 			modules[1].(*Module).lto.Properties.Lto = proptools.BoolPtr(true)
 		}
 	}
