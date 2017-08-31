@@ -24,12 +24,12 @@ import (
 )
 
 const (
-	pagerandoCFlags = "-fpagerando"
+	pagerandoCFlags  = "-fpagerando"
 	pagerandoLdFlags = "-Wl,--plugin-opt,pagerando"
 )
 
 type PagerandoProperties struct {
-	Pagerando      *bool    `android:"arch_variant"`
+	Pagerando *bool `android:"arch_variant"`
 }
 
 type pagerando struct {
