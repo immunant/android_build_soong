@@ -103,14 +103,14 @@ func pagerandoMutator(mctx android.BottomUpMutatorContext) {
 	if c, ok := mctx.Module().(*Module); ok && c.pagerando != nil {
 		if c.pagerando.Pagerando() {
 			mctx.SetDependencyVariation("pagerando")
-			if c.lto.LTODisabled() {
+			if c.lto == nil || c.lto.Disabled() {
 				mctx.ModuleErrorf("does not support LTO")
 				return
 			}
-			c.lto.Properties.Lto = proptools.BoolPtr(true)
+			c.lto.Properties.Lto.Full = proptools.BoolPtr(true)
 		} else if c.pagerando.Properties.Pagerando == nil &&
 			mctx.AConfig().Pagerando() {
-			if c.lto.LTODisabled() {
+			if c.lto == nil || c.lto.Disabled() {
 				// Do not build this module with pagerando since
 				// LTO is disabled. This should not be a fatal
 				// error.
@@ -121,7 +121,7 @@ func pagerandoMutator(mctx android.BottomUpMutatorContext) {
 			modules[0].(*Module).pagerando.Properties.Pagerando = proptools.BoolPtr(false)
 			modules[1].(*Module).pagerando.Properties.Pagerando = proptools.BoolPtr(true)
 			modules[1].(*Module).Properties.PreventInstall = true
-			modules[1].(*Module).lto.Properties.Lto = proptools.BoolPtr(true)
+			modules[1].(*Module).lto.Properties.Lto.Full = proptools.BoolPtr(true)
 		}
 	}
 }
