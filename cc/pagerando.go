@@ -26,7 +26,9 @@ import (
 var (
 	pagerandoCFlags  = []string{"-fsanitize=pagerando",
 		"-fsanitize-blacklist=build/soong/cc/config/pagerando_blacklist.txt"}
-	pagerandoLdFlags = []string{"-Wl,--plugin-opt,pagerando"}
+	pagerandoLdFlags = []string{"-Wl,--plugin-opt,pagerando",
+		"-Wl,--plugin-opt,-pagerando-skip-trivial",
+		"-Wl,--plugin-opt,-pagerando-binning-strategy=pgo"}
 )
 
 type PagerandoProperties struct {
