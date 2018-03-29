@@ -1,5 +1,8 @@
 [pagerando]
 
+# Trivial pass through wrapper functions
+fun:ioctl
+
 # RefBase::{inc,dec}Strong are slow in binder benchmarks
 fun:_ZNK7android7RefBase9decStrongEPKv
 fun:_ZN7android7RefBase12weakref_type7decWeakEPKv
