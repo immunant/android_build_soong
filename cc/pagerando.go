@@ -23,9 +23,10 @@ import (
 	"android/soong/android"
 )
 
-const (
-	pagerandoCFlags  = "-fpagerando"
-	pagerandoLdFlags = "-Wl,--plugin-opt,pagerando"
+var (
+	pagerandoCFlags  = []string{"-fsanitize=pagerando",
+		"-fsanitize-blacklist=build/soong/cc/config/pagerando_blacklist.txt"}
+	pagerandoLdFlags = []string{"-Wl,--plugin-opt,pagerando"}
 )
 
 type PagerandoProperties struct {
@@ -71,8 +72,8 @@ func (pagerando *pagerando) deps(ctx BaseModuleContext, deps Deps) Deps {
 
 func (pagerando *pagerando) flags(ctx BaseModuleContext, flags Flags) Flags {
 	if pagerando.Pagerando() {
-		flags.CFlags = append(flags.CFlags, pagerandoCFlags)
-		flags.LdFlags = append(flags.LdFlags, pagerandoLdFlags)
+		flags.CFlags = append(flags.CFlags, pagerandoCFlags...)
+		flags.LdFlags = append(flags.LdFlags, pagerandoLdFlags...)
 	}
 	return flags
 }

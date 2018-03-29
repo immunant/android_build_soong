@@ -1,0 +1,33 @@
+[pagerando]
+
+# RefBase::{inc,dec}Strong are slow in binder benchmarks
+fun:_ZNK7android7RefBase9decStrongEPKv
+fun:_ZN7android7RefBase12weakref_type7decWeakEPKv
+fun:_ZNK7android7RefBase9incStrongEPKv
+fun:_ZN7android7RefBase12weakref_type16attemptIncStrongEPKv
+
+fun:pthread_getspecific
+fun:pthread_mutex_unlock
+fun:pthread_mutex_lock
+fun:pthread_cond_broadcast
+fun:free
+fun:realloc
+fun:malloc
+
+fun:je_free
+fun:je_realloc
+fun:je_malloc
+fun:je_arena_ralloc_no_move
+
+fun:_ZNK7android8String164sizeEv
+fun:_ZN7android7String85clearEv
+fun:_ZN7android8String16C2EPKDsm
+fun:_ZN7android8String16D2Ev
+fun:_ZN7android7String8C2Ev
+fun:_ZN7android7String8D2Ev
+fun:strzcmp16
+
+# Expensive functions in libbinder.so
+fun:_ZN7android7BBinder8transactEjRKNS_6ParcelEPS1_j
+fun:_ZN7android14IPCThreadState14executeCommandEi
+fun:_ZN7android6Parcel13continueWriteEm
