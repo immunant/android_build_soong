@@ -29,7 +29,7 @@ func runNinja(ctx Context, config Config) {
 
 	executable := config.PrebuiltBuildTool("ninja")
 	args := []string{
-		"-d", "keepdepfile",
+		"-d", "keepdepfile", "-d", "keeprsp",
 	}
 
 	args = append(args, config.NinjaArgs()...)

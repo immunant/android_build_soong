@@ -46,6 +46,8 @@ func toolchainLibraryFactory() android.Module {
 	module.Properties.Clang = BoolPtr(false)
 	module.stl = nil
 	module.sanitize = nil
+	module.pagerando = nil
+	module.lto = nil
 	module.installer = nil
 	return module.Init()
 }

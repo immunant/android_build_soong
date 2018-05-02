@@ -136,6 +136,7 @@ func (lto *lto) Disabled() bool {
 func (lto *lto) EnableFull(ctx android.BaseModuleContext) {
 	if lto == nil || lto.Disabled() {
 		ctx.ModuleErrorf("does not support LTO")
+		return
 	}
 	if Bool(lto.Properties.Lto.Thin) {
 		ctx.PropertyErrorf("LTO", "FullLTO and ThinLTO are mutually exclusive")
@@ -146,6 +147,7 @@ func (lto *lto) EnableFull(ctx android.BaseModuleContext) {
 func (lto *lto) EnableThin(ctx android.BaseModuleContext) {
 	if lto == nil || lto.Disabled() {
 		ctx.ModuleErrorf("does not support LTO")
+		return
 	}
 	if Bool(lto.Properties.Lto.Full) {
 		ctx.PropertyErrorf("LTO", "FullLTO and ThinLTO are mutually exclusive")

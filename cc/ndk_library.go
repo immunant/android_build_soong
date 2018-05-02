@@ -352,6 +352,8 @@ func newStubLibrary() *Module {
 	library.BuildOnlyShared()
 	module.stl = nil
 	module.sanitize = nil
+	module.pagerando = nil
+	module.lto = nil
 	library.StripProperties.Strip.None = BoolPtr(true)
 
 	stub := &stubDecorator{

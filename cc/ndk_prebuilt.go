@@ -66,6 +66,9 @@ func (*ndkPrebuiltObjectLinker) linkerDeps(ctx DepsContext, deps Deps) Deps {
 
 func ndkPrebuiltObjectFactory() android.Module {
 	module := newBaseModule(android.DeviceSupported, android.MultilibBoth)
+	module.sanitize = nil
+	module.pagerando = nil
+	module.lto = nil
 	module.linker = &ndkPrebuiltObjectLinker{
 		objectLinker: objectLinker{
 			baseLinker: NewBaseLinker(),
@@ -102,6 +105,9 @@ func ndkPrebuiltSharedStlFactory() android.Module {
 	module, library := NewLibrary(android.DeviceSupported)
 	library.BuildOnlyShared()
 	module.compiler = nil
+	module.sanitize = nil
+	module.pagerando = nil
+	module.lto = nil
 	module.linker = &ndkPrebuiltStlLinker{
 		libraryDecorator: library,
 	}
@@ -117,6 +123,9 @@ func ndkPrebuiltStaticStlFactory() android.Module {
 	module, library := NewLibrary(android.DeviceSupported)
 	library.BuildOnlyStatic()
 	module.compiler = nil
+	module.sanitize = nil
+	module.pagerando = nil
+	module.lto = nil
 	module.linker = &ndkPrebuiltStlLinker{
 		libraryDecorator: library,
 	}
