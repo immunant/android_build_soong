@@ -660,7 +660,7 @@ func (c *config) EnableXOM() bool {
 }
 
 func (c *config) Pagerando() bool {
-	return *c.ProductVariables.Pagerando
+	return Bool(c.productVariables.Pagerando)
 }
 
 func (c *config) Android64() bool {
