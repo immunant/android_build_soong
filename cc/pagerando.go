@@ -45,6 +45,7 @@ const (
 	potIndexFilename = "system/core/rootdir/etc/ld.pot_map.txt"
 
 	globalPOTIndexLdFlag = "-Wl,--plugin-opt,-global-pot-index=%d"
+	globalPOTCompatLdFlag = "-Wl,-z,unipot"
 )
 
 type PagerandoProperties struct {
@@ -134,6 +135,7 @@ func (pagerando *pagerando) flags(ctx BaseModuleContext, flags Flags) Flags {
 		if pagerando.Properties.POTIndex != nil {
 			flags.LdFlags = append(flags.LdFlags,
 				fmt.Sprintf(globalPOTIndexLdFlag, *pagerando.Properties.POTIndex))
+			flags.LdFlags = append(flags.LdFlags, globalPOTCompatLdFlag)
 		}
 	}
 	return flags
