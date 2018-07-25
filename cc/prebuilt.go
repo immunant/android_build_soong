@@ -116,6 +116,7 @@ func NewPrebuiltSharedLibrary(hod android.HostOrDeviceSupported) (*Module, *libr
 	module, library := NewLibrary(hod)
 	library.BuildOnlyShared()
 	module.compiler = nil
+	module.pagerando = nil
 
 	prebuilt := &prebuiltLibraryLinker{
 		libraryDecorator: library,
