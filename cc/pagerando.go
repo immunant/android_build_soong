@@ -24,6 +24,8 @@ import (
 )
 
 var (
+	// pagerandoCFlags = []string{}
+	// pagerandoLdFlags = []string{}
 	pagerandoCFlags  = []string{"-fsanitize=pagerando",
 		"-fsanitize-blacklist=build/soong/cc/config/pagerando_blacklist.txt"}
 	pagerandoLdFlags = []string{"-Wl,--plugin-opt,pagerando",
@@ -33,6 +35,10 @@ var (
 
 type PagerandoProperties struct {
 	Pagerando *bool `android:"arch_variant"`
+
+	// Dep properties indicate that this module needs to be built with
+	// pagerando since it is an object dependency of a pagerando module.
+	PagerandoDep bool `blueprint:"mutated"`
 }
 
 type pagerando struct {
@@ -57,6 +63,13 @@ func (pagerando *pagerando) begin(ctx BaseModuleContext) {
 	// Pagerando should only be enabled for libraries
 	if !ctx.sharedLibrary() && !ctx.staticLibrary() {
 		pagerando.Properties.Pagerando = proptools.BoolPtr(false)
+	}
+
+	// Static libraries will pick up pagerando as dependencies of a shared
+	// library if needed, so we shouldn't ever mark them as explicitly
+	// requiring pagerando.
+	if ctx.staticLibrary() {
+		pagerando.Properties.Pagerando = nil
 	}
 
 	// If local blueprint does not specify, allow global setting to enable
@@ -101,6 +114,34 @@ func (pagerando *pagerando) Pagerando() bool {
 	return Bool(pagerando.Properties.Pagerando)
 }
 
+// Is pagerando explicitly set to false?
+func (pagerando *pagerando) Disabled() bool {
+	return pagerando.Properties.Pagerando != nil && !*pagerando.Properties.Pagerando
+}
+
+
+// Propagate pagerando requirements down from binaries
+func pagerandoDepsMutator(mctx android.TopDownMutatorContext) {
+	if m, ok := mctx.Module().(*Module); ok && m.pagerando.Pagerando() {
+		mctx.WalkDeps(func(dep android.Module, parent android.Module) bool {
+			tag := mctx.OtherModuleDependencyTag(dep)
+			switch tag {
+			case staticDepTag, staticExportDepTag, lateStaticDepTag, wholeStaticDepTag, objDepTag, reuseObjTag:
+				if dep, ok := dep.(*Module); ok && dep.pagerando != nil &&
+					!dep.pagerando.Disabled() {
+					dep.pagerando.Properties.PagerandoDep = true
+				}
+
+				// Recursively walk static dependencies
+				return true
+			}
+
+			// Do not recurse down non-static dependencies
+			return false
+		})
+	}
+}
+
 // Create pagerando variants for modules that need them
 func pagerandoMutator(mctx android.BottomUpMutatorContext) {
 	if c, ok := mctx.Module().(*Module); ok && c.pagerando != nil {
@@ -111,8 +152,9 @@ func pagerandoMutator(mctx android.BottomUpMutatorContext) {
 				return
 			}
 			c.lto.Properties.Lto.Full = proptools.BoolPtr(true)
-		} else if c.pagerando.Properties.Pagerando == nil &&
-			mctx.AConfig().Pagerando() {
+		} else if c.pagerando.Properties.PagerandoDep ||
+			(c.pagerando.Properties.Pagerando == nil &&
+			mctx.AConfig().Pagerando()) {
 			if c.lto == nil || c.lto.Disabled() {
 				// Do not build this module with pagerando since
 				// LTO is disabled. This should not be a fatal
@@ -121,7 +163,11 @@ func pagerandoMutator(mctx android.BottomUpMutatorContext) {
 				return
 			}
 			modules := mctx.CreateVariations("", "pagerando")
+
+			modules[0].(*Module).pagerando.Properties.PagerandoDep = false
 			modules[0].(*Module).pagerando.Properties.Pagerando = proptools.BoolPtr(false)
+
+			modules[1].(*Module).pagerando.Properties.PagerandoDep = false
 			modules[1].(*Module).pagerando.Properties.Pagerando = proptools.BoolPtr(true)
 			modules[1].(*Module).Properties.PreventInstall = true
 			modules[1].(*Module).lto.Properties.Lto.Full = proptools.BoolPtr(true)

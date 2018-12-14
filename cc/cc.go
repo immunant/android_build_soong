@@ -65,6 +65,7 @@ func init() {
 		ctx.BottomUp("coverage", coverageLinkingMutator).Parallel()
 		ctx.TopDown("vndk_deps", sabiDepsMutator)
 
+		ctx.TopDown("pagerando_deps", pagerandoDepsMutator)
 		ctx.BottomUp("pagerando", pagerandoMutator).Parallel()
 
 		ctx.TopDown("lto_deps", ltoDepsMutator)
