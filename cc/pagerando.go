@@ -15,10 +15,9 @@
 package cc
 
 import (
-	"fmt"
-	"io"
-
-	"github.com/google/blueprint/proptools"
+	"sort"
+	"strings"
+	"sync"
 
 	"android/soong/android"
 )
@@ -31,6 +30,7 @@ var (
 	pagerandoLdFlags = []string{"-Wl,--plugin-opt,pagerando",
 		"-Wl,--plugin-opt,-pagerando-skip-trivial",
 		"-Wl,--plugin-opt,-pagerando-binning-strategy=pgo"}
+	pagerandoStaticLibsMutex    sync.Mutex
 )
 
 type PagerandoProperties struct {
@@ -45,6 +45,10 @@ type pagerando struct {
 	Properties PagerandoProperties
 }
 
+func init() {
+	android.RegisterMakeVarsProvider(pctx, pagerandoMakeVarsProvider)
+}
+
 func (pagerando *pagerando) props() []interface{} {
 	return []interface{}{&pagerando.Properties}
 }
@@ -52,17 +56,17 @@ func (pagerando *pagerando) props() []interface{} {
 func (pagerando *pagerando) begin(ctx BaseModuleContext) {
 	// Pagerando should only be enabled for device builds
 	if !ctx.Device() {
-		pagerando.Properties.Pagerando = proptools.BoolPtr(false)
+		pagerando.Properties.Pagerando = BoolPtr(false)
 	}
 
 	// Pagerando is currently only implemented for arm and arm64
 	if ctx.Arch().ArchType != android.Arm && ctx.Arch().ArchType != android.Arm64 {
-		pagerando.Properties.Pagerando = proptools.BoolPtr(false)
+		pagerando.Properties.Pagerando = BoolPtr(false)
 	}
 
 	// Pagerando should only be enabled for libraries
 	if !ctx.sharedLibrary() && !ctx.staticLibrary() {
-		pagerando.Properties.Pagerando = proptools.BoolPtr(false)
+		pagerando.Properties.Pagerando = BoolPtr(false)
 	}
 
 	// Static libraries will pick up pagerando as dependencies of a shared
@@ -77,7 +81,7 @@ func (pagerando *pagerando) begin(ctx BaseModuleContext) {
 	// versions built for consumption by make.
 	if ctx.sharedLibrary() && ctx.AConfig().Pagerando() &&
 		pagerando.Properties.Pagerando == nil {
-		pagerando.Properties.Pagerando = proptools.BoolPtr(true)
+		pagerando.Properties.Pagerando = BoolPtr(true)
 	}
 }
 
@@ -94,15 +98,9 @@ func (pagerando *pagerando) flags(ctx BaseModuleContext, flags Flags) Flags {
 }
 
 func (pagerando *pagerando) AndroidMk(ctx AndroidMkContext, ret *android.AndroidMkData) {
-	ret.Extra = append(ret.Extra, func(w io.Writer, outputFile android.Path) {
-		if pagerando.Properties.Pagerando == nil {
-			return
-		} else if pagerando.Pagerando() {
-			fmt.Fprintln(w, "LOCAL_PAGERANDO := true")
-		} else {
-			fmt.Fprintln(w, "LOCAL_PAGERANDO := false")
-		}
-	})
+	if ret.Class == "STATIC_LIBRARIES" && pagerando.Pagerando() {
+		ret.SubName += ".pagerando"
+	}
 }
 
 // Can be called with a null receiver
@@ -151,7 +149,7 @@ func pagerandoMutator(mctx android.BottomUpMutatorContext) {
 				mctx.ModuleErrorf("does not support LTO")
 				return
 			}
-			c.lto.Properties.Lto.Full = proptools.BoolPtr(true)
+			c.lto.Properties.Lto.Full = BoolPtr(true)
 		} else if c.pagerando.Properties.PagerandoDep ||
 			(c.pagerando.Properties.Pagerando == nil &&
 			mctx.AConfig().Pagerando()) {
@@ -159,18 +157,38 @@ func pagerandoMutator(mctx android.BottomUpMutatorContext) {
 				// Do not build this module with pagerando since
 				// LTO is disabled. This should not be a fatal
 				// error.
-				c.pagerando.Properties.Pagerando = proptools.BoolPtr(false)
+				c.pagerando.Properties.Pagerando = BoolPtr(false)
 				return
 			}
 			modules := mctx.CreateVariations("", "pagerando")
 
 			modules[0].(*Module).pagerando.Properties.PagerandoDep = false
-			modules[0].(*Module).pagerando.Properties.Pagerando = proptools.BoolPtr(false)
+			modules[0].(*Module).pagerando.Properties.Pagerando = BoolPtr(false)
 
 			modules[1].(*Module).pagerando.Properties.PagerandoDep = false
-			modules[1].(*Module).pagerando.Properties.Pagerando = proptools.BoolPtr(true)
+			modules[1].(*Module).pagerando.Properties.Pagerando = BoolPtr(true)
 			modules[1].(*Module).Properties.PreventInstall = true
-			modules[1].(*Module).lto.Properties.Lto.Full = proptools.BoolPtr(true)
+			modules[1].(*Module).lto.Properties.Lto.Full = BoolPtr(true)
+
+			if c.static() {
+				pagerandoStaticLibs := pagerandoStaticLibs(mctx.Config())
+
+				pagerandoStaticLibsMutex.Lock()
+				*pagerandoStaticLibs = append(*pagerandoStaticLibs, c.Name())
+				pagerandoStaticLibsMutex.Unlock()
+			}
 		}
 	}
+}
+
+func pagerandoStaticLibs(config android.Config) *[]string {
+	return config.Once("pagerandoStaticLibs", func() interface{} {
+		return &[]string{}
+	}).(*[]string)
+}
+
+func pagerandoMakeVarsProvider(ctx android.MakeVarsContext) {
+	pagerandoStaticLibs := pagerandoStaticLibs(ctx.Config())
+	sort.Strings(*pagerandoStaticLibs)
+	ctx.Strict("SOONG_PAGERANDO_STATIC_LIBRARIES", strings.Join(*pagerandoStaticLibs, " "))
 }
