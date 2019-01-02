@@ -497,6 +497,9 @@ func (library *libraryDecorator) linkerInit(ctx BaseModuleContext) {
 	// Let baseLinker know whether this variant is for stubs or not, so that
 	// it can omit things that are not required for linking stubs.
 	library.baseLinker.dynamicProperties.BuildStubs = library.buildStubs()
+	if library.pagerando.Pagerando() {
+		library.baseLinker.Properties.Use_clang_lld = BoolPtr(false)
+	}
 
 	if library.buildStubs() {
 		macroNames := versioningMacroNamesList(ctx.Config())
